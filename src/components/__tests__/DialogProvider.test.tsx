@@ -224,12 +224,15 @@ describe('DialogProvider — single modal', () => {
 });
 
 describe('DialogProvider — native confirm in the desktop app', () => {
+  let warnSpy: ReturnType<typeof vi.spyOn> | undefined;
   beforeEach(() => {
     askMock.mockReset();
     (globalThis as { isTauri?: boolean }).isTauri = true;
   });
   afterEach(() => {
     delete (globalThis as { isTauri?: boolean }).isTauri;
+    warnSpy?.mockRestore();
+    warnSpy = undefined;
   });
 
   it('asks the OS and resolves its answer, without an in-page dialog', async () => {
@@ -243,7 +246,7 @@ describe('DialogProvider — native confirm in the desktop app', () => {
 
   it('falls back to the in-page dialog when the OS dialog fails', async () => {
     askMock.mockRejectedValue(new Error('no dialog'));
-    vi.spyOn(console, 'warn').mockImplementation(() => {});
+    warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
     renderHarness();
     fireEvent.click(screen.getByText('go-confirm'));
     fireEvent.click(await screen.findByTestId('dialog-confirm'));
